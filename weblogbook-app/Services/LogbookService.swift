@@ -2,12 +2,14 @@ import Foundation
 
 enum LogbookServiceError: Error, LocalizedError {
     case invalidConfiguration
+    case invalidCredentials
     case invalidResponse(statusCode: Int)
 
     var errorDescription: String? {
         switch self {
-        case .invalidConfiguration:           "API URL is not configured. Please set it in Settings."
-        case .invalidResponse(let code):      "Unexpected response from server (HTTP \(code))"
+        case .invalidConfiguration:       "API URL is not configured. Please set it in Settings."
+        case .invalidCredentials:         "Invalid username or password."
+        case .invalidResponse(let code):  "Unexpected response from server (HTTP \(code))"
         }
     }
 }
@@ -15,13 +17,34 @@ enum LogbookServiceError: Error, LocalizedError {
 struct LogbookService {
     let settings: SettingsStore
 
-    func fetchLogs() async throws -> [LogEntry] {
-        guard !settings.apiBaseURL.isEmpty,
-              let base = URL(string: settings.apiBaseURL) else {
-            throw LogbookServiceError.invalidConfiguration
+    private var baseURL: URL {
+        get throws {
+            guard !settings.apiBaseURL.isEmpty,
+                  let url = URL(string: settings.apiBaseURL) else {
+                throw LogbookServiceError.invalidConfiguration
+            }
+            return url
         }
+    }
 
-        let url = base.appendingPathComponent("logbook/data")
+    func login(username: String, password: String) async throws -> String {
+        let url = try baseURL.appendingPathComponent("login")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(["login": username, "password": password])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+
+        if code == 401 { throw LogbookServiceError.invalidCredentials }
+        guard code == 200 else { throw LogbookServiceError.invalidResponse(statusCode: code) }
+
+        return try JSONDecoder().decode(LoginResponse.self, from: data).token
+    }
+
+    func fetchLogs() async throws -> [LogEntry] {
+        let url = try baseURL.appendingPathComponent("logbook/data")
         var request = URLRequest(url: url)
         if !settings.accessToken.isEmpty {
             request.setValue("Bearer \(settings.accessToken)", forHTTPHeaderField: "Authorization")
@@ -37,4 +60,8 @@ struct LogbookService {
         let dtos = try JSONDecoder().decode([LogEntryDTO].self, from: data)
         return dtos.compactMap { $0.toDomain() }
     }
+}
+
+private struct LoginResponse: Decodable {
+    let token: String
 }
