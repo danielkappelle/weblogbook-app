@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct weblogbook_appApp: App {
+    @State private var appState = AppState()
+    @State private var settingsStore = SettingsStore()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(appState)
+                .environment(settingsStore)
         }
     }
 }

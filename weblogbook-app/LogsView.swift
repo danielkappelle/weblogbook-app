@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct LogsView: View {
+    @Environment(AppState.self) private var appState
+    @Environment(SettingsStore.self) private var settings
     @State private var logs: [LogEntry] = []
     @State private var error: Error?
-    private let service = LogbookService()
 
     var body: some View {
         NavigationStack {
@@ -31,6 +32,15 @@ struct LogsView: View {
             }
             .navigationTitle("Logs")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            appState.isMenuOpen = true
+                        }
+                    } label: {
+                        Image(systemName: "line.3.horizontal")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                     } label: {
@@ -44,7 +54,7 @@ struct LogsView: View {
 
     private func load() async {
         do {
-            logs = try await service.fetchLogs()
+            logs = try await LogbookService(settings: settings).fetchLogs()
             error = nil
         } catch {
             self.error = error
@@ -54,4 +64,6 @@ struct LogsView: View {
 
 #Preview {
     LogsView()
+        .environment(AppState())
+        .environment(SettingsStore())
 }

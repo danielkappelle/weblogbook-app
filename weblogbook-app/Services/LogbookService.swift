@@ -1,20 +1,31 @@
 import Foundation
 
 enum LogbookServiceError: Error, LocalizedError {
+    case invalidConfiguration
     case invalidResponse(statusCode: Int)
 
     var errorDescription: String? {
         switch self {
-        case .invalidResponse(let code): "Unexpected response from server (HTTP \(code))"
+        case .invalidConfiguration:           "API URL is not configured. Please set it in Settings."
+        case .invalidResponse(let code):      "Unexpected response from server (HTTP \(code))"
         }
     }
 }
 
 struct LogbookService {
+    let settings: SettingsStore
+
     func fetchLogs() async throws -> [LogEntry] {
-        let url = AppConfig.apiBaseURL.appendingPathComponent("logbook/data")
+        guard !settings.apiBaseURL.isEmpty,
+              let base = URL(string: settings.apiBaseURL) else {
+            throw LogbookServiceError.invalidConfiguration
+        }
+
+        let url = base.appendingPathComponent("logbook/data")
         var request = URLRequest(url: url)
-        request.setValue("Bearer \(AppConfig.apiKey)", forHTTPHeaderField: "Authorization")
+        if !settings.accessToken.isEmpty {
+            request.setValue("Bearer \(settings.accessToken)", forHTTPHeaderField: "Authorization")
+        }
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
