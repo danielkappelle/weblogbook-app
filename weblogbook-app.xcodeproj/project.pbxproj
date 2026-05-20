@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		24402FE82FBC902000EBEE59 /* weblogbook-app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "weblogbook-app.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		24402FE82FBC902000EBEE59 /* Web logbook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Web logbook.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,7 +40,7 @@
 		24402FE92FBC902000EBEE59 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				24402FE82FBC902000EBEE59 /* weblogbook-app.app */,
+				24402FE82FBC902000EBEE59 /* Web logbook.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,7 +67,7 @@
 			packageProductDependencies = (
 			);
 			productName = "weblogbook-app";
-			productReference = 24402FE82FBC902000EBEE59 /* weblogbook-app.app */;
+			productReference = 24402FE82FBC902000EBEE59 /* Web logbook.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -268,7 +268,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "danielkappelle.weblogbook-app";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Web logbook";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -305,7 +305,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "danielkappelle.weblogbook-app";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Web logbook";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

@@ -25,7 +25,7 @@ struct NewLogView: View {
     @State private var coPilotTime = ""
     @State private var dualTime = ""
     @State private var instructorTime = ""
-    @State private var landingsDay = 0	
+    @State private var landingsDay = 0
     @State private var landingsNight = 0
     @State private var simType = ""
     @State private var simTime = ""
