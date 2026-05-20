@@ -5,6 +5,7 @@ struct LogsView: View {
     @Environment(SettingsStore.self) private var settings
     @State private var logs: [LogEntry] = []
     @State private var error: Error?
+    @State private var offline = false
 
     var body: some View {
         NavigationStack {
@@ -49,6 +50,19 @@ struct LogsView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            if offline {
+                HStack(spacing: 6) {
+                    Image(systemName: "wifi.slash")
+                    Text("You're offline – showing cached data")
+                        .font(.footnote)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(.regularMaterial)
+                .foregroundStyle(.secondary)
+            }
+        }
         .task {
             logs = LogCache.load() ?? []
             await load()
@@ -61,7 +75,11 @@ struct LogsView: View {
             logs = fetched
             LogCache.save(fetched)
             error = nil
-        } catch {
+            self.offline = false
+        } catch LogbookServiceError.offline {
+            self.offline = true
+        }
+        catch {
             self.error = error
         }
     }
