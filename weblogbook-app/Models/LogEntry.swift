@@ -1,6 +1,6 @@
 import Foundation
 
-struct LogEntry: Identifiable {
+struct LogEntry: Identifiable, Codable {
     let id: UUID
     let date: Date
     let departure: AirportEvent
@@ -21,17 +21,17 @@ struct LogEntry: Identifiable {
     let signature: String
 }
 
-struct AirportEvent {
+struct AirportEvent: Codable {
     let place: String
     let time: String  // "HHmm" format, e.g. "0727"
 }
 
-struct Aircraft {
+struct Aircraft: Codable {
     let model: String
     let registration: String
 }
 
-struct FlightTime {
+struct FlightTime: Codable {
     let singleEngine: String
     let multiEngine: String
     let mcc: String
@@ -45,12 +45,12 @@ struct FlightTime {
     let crossCountry: String
 }
 
-struct Landings {
+struct Landings: Codable {
     let day: Int
     let night: Int
 }
 
-struct Simulator {
+struct Simulator: Codable {
     let type: String
     let time: String
 }

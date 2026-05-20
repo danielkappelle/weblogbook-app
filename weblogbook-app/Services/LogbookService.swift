@@ -37,7 +37,7 @@ struct LogbookService {
         let (data, response) = try await URLSession.shared.data(for: request)
         let code = (response as? HTTPURLResponse)?.statusCode ?? -1
 
-        if code == 401 { throw LogbookServiceError.invalidCredentials }
+        if code == 403 { throw LogbookServiceError.invalidCredentials }
         guard code == 200 else { throw LogbookServiceError.invalidResponse(statusCode: code) }
 
         return try JSONDecoder().decode(LoginResponse.self, from: data).token

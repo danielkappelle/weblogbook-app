@@ -49,12 +49,17 @@ struct LogsView: View {
                 }
             }
         }
-        .task { await load() }
+        .task {
+            logs = LogCache.load() ?? []
+            await load()
+        }
     }
 
     private func load() async {
         do {
-            logs = try await LogbookService(settings: settings).fetchLogs()
+            let fetched = try await LogbookService(settings: settings).fetchLogs()
+            logs = fetched
+            LogCache.save(fetched)
             error = nil
         } catch {
             self.error = error
