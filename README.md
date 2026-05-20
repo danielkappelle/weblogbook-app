@@ -1,5 +1,7 @@
 # WebLogbook iOS
 
+![App icon](./github_icon.png)
+
 A work-in-progress iOS companion app for [web-logbook](https://github.com/vsimakhin/web-logbook) — a self-hosted pilot logbook web application created and maintained by [vsimakhin](https://github.com/vsimakhin). This app connects to your own web-logbook instance and lets you browse, view, and create flight log entries from your iPhone.
 
 ## Requirements
