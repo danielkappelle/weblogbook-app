@@ -1,0 +1,2 @@
+
+{"uuid":"new","date":"20/05/2026","departure":{"place":"EHAM","time":"1234"},"arrival":{"place":"LSGG","time":"2222"},"aircraft":{"model":"TB10","reg_name":"PH-MLO"},"time":{"se_time":"00:01","me_time":"00:02","mcc_time":"00:03","total_time":"9:48","night_time":"02:28","ifr_time":"00:04","pic_time":"00:05","co_pilot_time":"00:06","dual_time":"00:07","instructor_time":"00:08"},"landings":{"day":1,"night":1},"sim":{"type":"sim","time":"00:09"},"pic_name":"K Jansen","remarks":"remark","redraw":0.15530282418251806,"custom_fields":"{}"}

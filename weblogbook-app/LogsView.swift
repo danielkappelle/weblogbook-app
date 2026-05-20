@@ -6,6 +6,7 @@ struct LogsView: View {
     @State private var logs: [LogEntry] = []
     @State private var error: Error?
     @State private var offline = false
+    @State private var showingNewLog = false
 
     var body: some View {
         NavigationStack {
@@ -43,8 +44,7 @@ struct LogsView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                    } label: {
+                    Button { showingNewLog = true } label: {
                         Image(systemName: "plus")
                     }
                 }
@@ -62,6 +62,10 @@ struct LogsView: View {
                 .background(.regularMaterial)
                 .foregroundStyle(.secondary)
             }
+        }
+        .sheet(isPresented: $showingNewLog) {
+            NewLogView(onSuccess: { Task { await load() } })
+                .environment(settings)
         }
         .task {
             logs = LogCache.load() ?? []
