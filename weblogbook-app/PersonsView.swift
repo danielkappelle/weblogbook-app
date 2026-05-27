@@ -5,6 +5,7 @@ struct PersonsView: View {
     @Environment(SettingsStore.self) private var settings
     @State private var persons: [Person] = []
     @State private var error: Error?
+    @State private var showingNewPerson = false
 
     var body: some View {
         NavigationStack {
@@ -45,7 +46,16 @@ struct PersonsView: View {
                         Image(systemName: "line.3.horizontal")
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingNewPerson = true } label: {
+                        Image(systemName: "plus")
+                    }
+                }
             }
+        }
+        .sheet(isPresented: $showingNewPerson) {
+            NewPersonView(onSuccess: { Task { await load() } })
+                .environment(settings)
         }
         .task { await load() }
     }

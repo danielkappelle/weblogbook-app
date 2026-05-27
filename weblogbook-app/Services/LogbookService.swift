@@ -189,6 +189,28 @@ struct LogbookService {
         guard code == 200 else { throw LogbookServiceError.invalidResponse(statusCode: code) }
         return try JSONDecoder().decode([FlightPersonDTO].self, from: data).compactMap { $0.toDomain() }
     }
+
+    func createPerson(_ person: NewPersonRequest) async throws {
+        let url = try baseURL.appendingPathComponent("person")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if !settings.accessToken.isEmpty {
+            request.setValue("Bearer \(settings.accessToken)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try JSONEncoder().encode(person)
+        let response: URLResponse
+        do {
+            (_, response) = try await URLSession.shared.data(for: request)
+        } catch let urlError as URLError where urlError.code == .notConnectedToInternet {
+            throw LogbookServiceError.offline
+        } catch {
+            throw error
+        }
+        let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+        if code == 401 { throw LogbookServiceError.notAuthenticated }
+        guard code == 200 else { throw LogbookServiceError.invalidResponse(statusCode: code) }
+    }
 }
 
 struct ServerSettings {
