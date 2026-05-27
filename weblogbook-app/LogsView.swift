@@ -4,17 +4,21 @@ struct LogsView: View {
     @Environment(AppState.self) private var appState
     @Environment(SettingsStore.self) private var settings
     @State private var logs: [LogEntry] = []
+    @State private var navigationPath: [LogEntry] = []
     @State private var error: Error?
     @State private var offline = false
     @State private var showingNewLog = false
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             List(logs) { entry in
-                NavigationLink(destination: LogDetailView(entry: entry)) {
+                NavigationLink(value: entry) {
                     LogEntryCard(entry: entry)
                 }
                 .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
+            }
+            .navigationDestination(for: LogEntry.self) { entry in
+                LogDetailView(entry: entry)
             }
             .listStyle(.plain)
             .overlay {
@@ -64,8 +68,15 @@ struct LogsView: View {
             }
         }
         .sheet(isPresented: $showingNewLog) {
-            NewLogView(onSuccess: { Task { await load() } })
-                .environment(settings)
+            NewLogView(onSuccess: { uuid in
+                Task {
+                    await load()
+                    if let entry = logs.first(where: { $0.id.uuidString.lowercased() == uuid.lowercased() }) {
+                        navigationPath = [entry]
+                    }
+                }
+            })
+            .environment(settings)
         }
         .task {
             logs = LogCache.load() ?? []

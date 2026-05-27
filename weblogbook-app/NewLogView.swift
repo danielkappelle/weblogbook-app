@@ -4,7 +4,7 @@ struct NewLogView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(\.dismiss) private var dismiss
 
-    let onSuccess: () -> Void
+    let onSuccess: (String) -> Void
 
     @State private var date = Date()
     @State private var departurePlace = ""
@@ -208,9 +208,9 @@ struct NewLogView: View {
         )
 
         do {
-            try await LogbookService(settings: settings).createLog(request)
+            let uuid = try await LogbookService(settings: settings).createLog(request)
             dismiss()
-            onSuccess()
+            onSuccess(uuid)
         } catch {
             submitError = error.localizedDescription
         }
@@ -218,6 +218,6 @@ struct NewLogView: View {
 }
 
 #Preview {
-    NewLogView(onSuccess: {})
+    NewLogView(onSuccess: { _ in })
         .environment(SettingsStore())
 }

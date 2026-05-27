@@ -55,7 +55,7 @@ struct LogbookService {
         return try JSONDecoder().decode(LoginResponse.self, from: data).token
     }
 
-    func createLog(_ log: NewLogRequest) async throws {
+    func createLog(_ log: NewLogRequest) async throws -> String {
         let url = try baseURL.appendingPathComponent("logbook/new")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -65,9 +65,10 @@ struct LogbookService {
         }
         request.httpBody = try JSONEncoder().encode(log)
 
+        let data: Data
         let response: URLResponse
         do {
-            (_, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await URLSession.shared.data(for: request)
         } catch let urlError as URLError where urlError.code == .notConnectedToInternet {
             throw LogbookServiceError.offline
         } catch {
@@ -77,6 +78,8 @@ struct LogbookService {
         let code = (response as? HTTPURLResponse)?.statusCode ?? -1
         if code == 401 { throw LogbookServiceError.notAuthenticated }
         guard code == 200 else { throw LogbookServiceError.invalidResponse(statusCode: code) }
+
+        return (try? JSONDecoder().decode(CreateLogResponse.self, from: data))?.data ?? ""
     }
 
     func fetchLogs() async throws -> [LogEntry] {
@@ -108,4 +111,8 @@ struct LogbookService {
 
 private struct LoginResponse: Decodable {
     let token: String
+}
+
+private struct CreateLogResponse: Decodable {
+    let data: String
 }
