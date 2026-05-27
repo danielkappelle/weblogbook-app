@@ -42,11 +42,17 @@ struct NewLogView: View {
                                 .textInputAutocapitalization(.characters)
                                 .autocorrectionDisabled()
                                 .multilineTextAlignment(.trailing)
+                                .onChange(of: departurePlace, {
+                                    departurePlace = String(departurePlace.prefix(4))
+                                })
                             Divider()
                             TextField("HHmm", text: $departureTime)
                                 .keyboardType(.numberPad)
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 60)
+                                .onChange(of: departureTime, {
+                                    departureTime = String(departureTime.prefix(4))
+                                })
                         }
                     }
                     LabeledContent("Arrival") {
@@ -55,28 +61,35 @@ struct NewLogView: View {
                                 .textInputAutocapitalization(.characters)
                                 .autocorrectionDisabled()
                                 .multilineTextAlignment(.trailing)
+                                .onChange(of: arrivalPlace, {
+                                    arrivalPlace = String(arrivalPlace.prefix(4))
+                                })
                             Divider()
                             TextField("HHmm", text: $arrivalTime)
                                 .keyboardType(.numberPad)
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 60)
+                                .onChange(of: arrivalTime, {
+                                    arrivalTime = String(arrivalTime.prefix(4))
+                                })
                         }
                     }
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                 }
-
-                Section("Aircraft") {
-                    TextField("Type", text: $aircraftModel)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.characters)
-                    TextField("Registration", text: $aircraftReg)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.characters)
+                
+                Section("Landings") {
+                    Stepper("Day: \(landingsDay)",   value: $landingsDay,   in: 0...99)
+                    Stepper("Night: \(landingsNight)", value: $landingsNight, in: 0...99)
                 }
 
-                Section("Pilot") {
+                Section("Flight details") {
+                    TextField("Aircraft type", text: $aircraftModel)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.characters)
+                    TextField("Aircraft registration", text: $aircraftReg)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.characters)
                     TextField("PIC name", text: $picName)
-                    TextField("Remarks", text: $remarks)
                 }
 
                 Section("Flight time") {
@@ -92,14 +105,13 @@ struct NewLogView: View {
                     timeRow("Instructor",  $instructorTime)
                 }
 
-                Section("Landings") {
-                    Stepper("Day: \(landingsDay)",   value: $landingsDay,   in: 0...99)
-                    Stepper("Night: \(landingsNight)", value: $landingsNight, in: 0...99)
-                }
-
                 Section("Simulator") {
                     TextField("Type", text: $simType)
                     timeRow("Time", $simTime)
+                }
+                
+                Section("Remarks") {
+                    TextField("Remarks", text: $remarks, axis: .vertical)
                 }
 
                 if let error = submitError {
