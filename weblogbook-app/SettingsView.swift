@@ -5,8 +5,8 @@ struct SettingsView: View {
     @Environment(SettingsStore.self) private var settings
 
     @State private var password = ""
-    @State private var isLoggingIn = false
-    @State private var loginError: String?
+    @State private var isConnecting = false
+    @State private var connectError: String?
 
     var body: some View {
         @Bindable var settings = settings
@@ -20,42 +20,54 @@ struct SettingsView: View {
                 }
 
                 Section("Account") {
-                    TextField("Username", text: $settings.username)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
+                    Toggle("Requires authentication", isOn: $settings.requiresAuth)
 
-                    SecureField("Password", text: $password)
+                    if settings.requiresAuth {
+                        TextField("Username", text: $settings.username)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+
+                        SecureField("Password", text: $password)
+                    }
 
                     Button {
-                        Task { await login() }
+                        Task { await connect() }
                     } label: {
                         HStack {
-                            Text("Log in")
+                            Text("Connect")
                             Spacer()
-                            if isLoggingIn {
-                                ProgressView()
-                            }
+                            if isConnecting { ProgressView() }
                         }
                     }
-                    .disabled(isLoggingIn || settings.username.isEmpty || password.isEmpty || settings.apiBaseURL.isEmpty)
+                    .disabled(isConnecting
+                        || settings.apiBaseURL.isEmpty
+                        || (settings.requiresAuth && (settings.username.isEmpty || password.isEmpty)))
 
-                    if let error = loginError {
+                    if let error = connectError {
                         Text(error)
                             .font(.caption)
                             .foregroundStyle(.red)
                     }
                 }
 
-                if settings.isLoggedIn {
+                if settings.isConnected {
                     Section {
                         HStack {
                             Text("Status")
                             Spacer()
-                            Text("Logged in")
+                            Text("Connected")
                                 .foregroundStyle(.secondary)
                         }
-                        Button("Log out", role: .destructive) {
-                            settings.logout()
+                        if !settings.apiVersion.isEmpty {
+                            HStack {
+                                Text("Version")
+                                Spacer()
+                                Text(settings.apiVersion)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Button("Disconnect", role: .destructive) {
+                            settings.disconnect()
                         }
                     }
                 }
@@ -75,20 +87,24 @@ struct SettingsView: View {
         }
     }
 
-    private func login() async {
-        isLoggingIn = true
-        loginError = nil
-        defer { isLoggingIn = false }
+    private func connect() async {
+        isConnecting = true
+        connectError = nil
+        defer { isConnecting = false }
 
         do {
-            let token = try await LogbookService(settings: settings).login(
-                username: settings.username,
-                password: password
-            )
-            settings.accessToken = token
-            password = ""
+            let svc = LogbookService(settings: settings)
+            if settings.requiresAuth {
+                let token = try await svc.login(username: settings.username, password: password)
+                settings.accessToken = token
+                password = ""
+            }
+            try await svc.testConnection()
+            settings.apiVersion = (try? await svc.fetchVersion()) ?? ""
+            settings.isConnected = true
         } catch {
-            loginError = error.localizedDescription
+            connectError = error.localizedDescription
+            settings.isConnected = false
         }
     }
 }

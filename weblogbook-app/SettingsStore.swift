@@ -14,15 +14,30 @@ class SettingsStore {
         didSet { KeychainHelper.save(accessToken, for: "accessToken") }
     }
 
-    var isLoggedIn: Bool { !accessToken.isEmpty }
-
-    init() {
-        apiBaseURL  = UserDefaults.standard.string(forKey: "apiBaseURL") ?? ""
-        username    = UserDefaults.standard.string(forKey: "username") ?? ""
-        accessToken = KeychainHelper.load(for: "accessToken") ?? ""
+    var requiresAuth: Bool {
+        didSet { UserDefaults.standard.set(requiresAuth, forKey: "requiresAuth") }
     }
 
-    func logout() {
+    var isConnected: Bool {
+        didSet { UserDefaults.standard.set(isConnected, forKey: "isConnected") }
+    }
+
+    var apiVersion: String {
+        didSet { UserDefaults.standard.set(apiVersion, forKey: "apiVersion") }
+    }
+
+    init() {
+        apiBaseURL   = UserDefaults.standard.string(forKey: "apiBaseURL") ?? ""
+        username     = UserDefaults.standard.string(forKey: "username") ?? ""
+        accessToken  = KeychainHelper.load(for: "accessToken") ?? ""
+        requiresAuth = UserDefaults.standard.object(forKey: "requiresAuth") as? Bool ?? true
+        isConnected  = UserDefaults.standard.bool(forKey: "isConnected")
+        apiVersion   = UserDefaults.standard.string(forKey: "apiVersion") ?? ""
+    }
+
+    func disconnect() {
         accessToken = ""
+        isConnected = false
+        apiVersion  = ""
     }
 }
