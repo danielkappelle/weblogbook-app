@@ -80,7 +80,6 @@ struct LogbookService {
     }
 
     func fetchLogs() async throws -> [LogEntry] {
-        print("foo")
         let url = try baseURL.appendingPathComponent("logbook/data")
         var request = URLRequest(url: url)
         if !settings.accessToken.isEmpty {

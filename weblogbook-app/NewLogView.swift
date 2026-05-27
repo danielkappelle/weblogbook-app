@@ -107,7 +107,7 @@ struct NewLogView: View {
 
                 Section("Simulator") {
                     TextField("Type", text: $simType)
-                    timeRow("Time", $simTime)
+                    timeRow("Time", $simTime, auto: false)
                 }
                 
                 Section("Remarks") {
@@ -145,13 +145,39 @@ struct NewLogView: View {
     }
 
     @ViewBuilder
-    private func timeRow(_ label: String, _ binding: Binding<String>) -> some View {
+    private func timeRow(_ label: String, _ binding: Binding<String>, auto: Bool = true) -> some View {
         LabeledContent(label) {
-            TextField("HH:mm", text: binding)
-                .keyboardType(.numbersAndPunctuation)
-                .multilineTextAlignment(.trailing)
-                .autocorrectionDisabled()
+            HStack(spacing: 20) {
+                TextField("HH:mm", text: binding)
+                    .keyboardType(.numbersAndPunctuation)
+                    .multilineTextAlignment(.trailing)
+                    .autocorrectionDisabled()
+                
+                if(auto) {
+                    Button { autoFillTime(binding) } label: {
+                        Image(systemName: "wand.and.sparkles")
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    
+                }
+            }
         }
+    }
+
+    private func autoFillTime(_ binding: Binding<String>) {
+        guard departureTime.count == 4, arrivalTime.count == 4,
+              let depH = Int(departureTime.prefix(2)),
+              let depM = Int(departureTime.suffix(2)),
+              let arrH = Int(arrivalTime.prefix(2)),
+              let arrM = Int(arrivalTime.suffix(2)) else { return }
+
+        let depMinutes = depH * 60 + depM
+        var arrMinutes = arrH * 60 + arrM
+        if arrMinutes < depMinutes { arrMinutes += 24 * 60 }
+
+        let diff = arrMinutes - depMinutes
+        binding.wrappedValue = String(format: "%d:%02d", diff / 60, diff % 60)
     }
 
     private func submit() async {
