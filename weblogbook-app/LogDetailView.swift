@@ -2,6 +2,8 @@ import SwiftUI
 
 struct LogDetailView: View {
     let entry: LogEntry
+    @Environment(SettingsStore.self) private var settings
+    @State private var flightPersons: [FlightPerson] = []
 
     var body: some View {
         List {
@@ -66,35 +68,22 @@ struct LogDetailView: View {
                     if !entry.sim.time.isEmpty { LabeledContent("Time", value: entry.sim.time) }
                 }
             }
+
+            if !flightPersons.isEmpty {
+                Section("Persons") {
+                    ForEach(flightPersons) { person in
+                        LabeledContent(person.role.isEmpty ? "Crew" : person.role,
+                                       value: person.fullName)
+                    }
+                }
+            }
         }
         .navigationTitle(entry.date.formatted(.dateTime.day().month().year()))
         .navigationBarTitleDisplayMode(.inline)
+        .task { await loadPersons() }
     }
-}
 
-#Preview {
-    NavigationStack {
-        LogDetailView(entry: LogEntry(
-            id: UUID(),
-            date: .now,
-            departure: AirportEvent(place: "EHAM", time: "0800"),
-            arrival: AirportEvent(place: "LFBD", time: "0900"),
-            aircraft: Aircraft(model: "B738", registration: "PH-BXA"),
-            flightTime: FlightTime(
-                singleEngine: "", multiEngine: "", mcc: "2:00",
-                total: "2:00", night: "", ifr: "2:00",
-                pic: "", coPilot: "2:00", dual: "", instructor: "", crossCountry: "2:00"
-            ),
-            landings: Landings(day: 1, night: 0),
-            sim: Simulator(type: "", time: ""),
-            picName: "J Doe",
-            remarks: "",
-            distance: 500,
-            recordNumber: 1,
-            prevUUID: nil, nextUUID: nil,
-            hasTrack: false,
-            attachmentsCount: 0,
-            tags: "", signature: ""
-        ))
+    private func loadPersons() async {
+        flightPersons = (try? await LogbookService(settings: settings).fetchPersonsForLog(entry.id)) ?? []
     }
 }
