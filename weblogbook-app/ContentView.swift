@@ -14,6 +14,7 @@ struct ContentView: View {
         ZStack(alignment: .leading) {
             switch appState.selectedSection {
             case .logs:     LogsView()
+            case .persons:  PersonsView()
             case .settings: SettingsView()
             }
             
