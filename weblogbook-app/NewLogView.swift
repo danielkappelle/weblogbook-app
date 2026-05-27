@@ -1,11 +1,19 @@
 import SwiftUI
 
+private struct LogPersonEntry: Identifiable {
+    let id = UUID()
+    let person: Person
+    let role: String
+}
+
 struct NewLogView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(\.dismiss) private var dismiss
 
     let onSuccess: (String) -> Void
 
+    @State private var logPersons: [LogPersonEntry] = []
+    @State private var showingPersonPicker = false
     @State private var date = Date()
     @State private var departurePlace = ""
     @State private var departureTime = ""
@@ -114,6 +122,19 @@ struct NewLogView: View {
                     TextField("Remarks", text: $remarks, axis: .vertical)
                 }
 
+                Section("Persons") {
+                    ForEach(logPersons) { entry in
+                        HStack {
+                            Text(entry.person.fullName)
+                            Spacer()
+                            Text(entry.role)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .onDelete { logPersons.remove(atOffsets: $0) }
+                    Button("Add person") { showingPersonPicker = true }
+                }
+
                 if let error = submitError {
                     Section {
                         Text(error)
@@ -124,6 +145,12 @@ struct NewLogView: View {
             }
             .navigationTitle("New log")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showingPersonPicker) {
+                PersonPickerView { person, role in
+                    logPersons.append(LogPersonEntry(person: person, role: role))
+                }
+                .environment(settings)
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
@@ -208,7 +235,15 @@ struct NewLogView: View {
         )
 
         do {
-            let uuid = try await LogbookService(settings: settings).createLog(request)
+            let svc = LogbookService(settings: settings)
+            let uuid = try await svc.createLog(request)
+            for entry in logPersons {
+                try? await svc.addPersonToLog(
+                    logUUID: uuid,
+                    personUUID: entry.person.id.uuidString.lowercased(),
+                    role: entry.role
+                )
+            }
             dismiss()
             onSuccess(uuid)
         } catch {

@@ -211,6 +211,34 @@ struct LogbookService {
         if code == 401 { throw LogbookServiceError.notAuthenticated }
         guard code == 200 else { throw LogbookServiceError.invalidResponse(statusCode: code) }
     }
+
+    func addPersonToLog(logUUID: String, personUUID: String, role: String) async throws {
+        struct Body: Encodable {
+            let logUUID: String; let personUUID: String; let role: String
+            enum CodingKeys: String, CodingKey {
+                case logUUID = "log_uuid"; case personUUID = "person_uuid"; case role
+            }
+        }
+        let url = try baseURL.appendingPathComponent("person/person-to-log")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if !settings.accessToken.isEmpty {
+            request.setValue("Bearer \(settings.accessToken)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try JSONEncoder().encode(Body(logUUID: logUUID, personUUID: personUUID, role: role))
+        let response: URLResponse
+        do {
+            (_, response) = try await URLSession.shared.data(for: request)
+        } catch let urlError as URLError where urlError.code == .notConnectedToInternet {
+            throw LogbookServiceError.offline
+        } catch {
+            throw error
+        }
+        let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+        if code == 401 { throw LogbookServiceError.notAuthenticated }
+        guard code == 200 else { throw LogbookServiceError.invalidResponse(statusCode: code) }
+    }
 }
 
 struct ServerSettings {
