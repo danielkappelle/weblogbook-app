@@ -100,15 +100,16 @@ struct LogbookService {
             .trimmingCharacters(in: CharacterSet(charactersIn: "\"")) ?? ""
     }
 
-    func testConnection() async throws {
+    func fetchServerSettings() async throws -> ServerSettings {
         let url = try baseURL.appendingPathComponent("settings/list")
         var request = URLRequest(url: url)
         if !settings.accessToken.isEmpty {
             request.setValue("Bearer \(settings.accessToken)", forHTTPHeaderField: "Authorization")
         }
+        let data: Data
         let response: URLResponse
         do {
-            (_, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await URLSession.shared.data(for: request)
         } catch let urlError as URLError where urlError.code == .notConnectedToInternet {
             throw LogbookServiceError.offline
         } catch {
@@ -117,6 +118,8 @@ struct LogbookService {
         let code = (response as? HTTPURLResponse)?.statusCode ?? -1
         if code == 401 { throw LogbookServiceError.notAuthenticated }
         guard code == 200 else { throw LogbookServiceError.invalidResponse(statusCode: code) }
+        let dto = try JSONDecoder().decode(ServerSettingsDTO.self, from: data)
+        return ServerSettings(ownerName: dto.ownerName, licenseNumber: dto.licenseNumber)
     }
 
     func fetchLogs() async throws -> [LogEntry] {
@@ -143,6 +146,20 @@ struct LogbookService {
 
         let dtos = try JSONDecoder().decode([LogEntryDTO].self, from: data)
         return dtos.compactMap { $0.toDomain() }
+    }
+}
+
+struct ServerSettings {
+    let ownerName: String
+    let licenseNumber: String
+}
+
+private struct ServerSettingsDTO: Decodable {
+    let ownerName: String
+    let licenseNumber: String
+    enum CodingKeys: String, CodingKey {
+        case ownerName     = "owner_name"
+        case licenseNumber = "license_number"
     }
 }
 

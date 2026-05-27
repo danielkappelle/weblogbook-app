@@ -99,12 +99,16 @@ struct SettingsView: View {
                 settings.accessToken = token
                 password = ""
             }
-            try await svc.testConnection()
-            settings.apiVersion = (try? await svc.fetchVersion()) ?? ""
-            settings.isConnected = true
+            let serverSettings = try await svc.fetchServerSettings()
+            settings.ownerName     = serverSettings.ownerName
+            settings.licenseNumber = serverSettings.licenseNumber
+            settings.apiVersion    = (try? await svc.fetchVersion()) ?? ""
+            settings.isConnected   = true
         } catch {
-            connectError = error.localizedDescription
-            settings.isConnected = false
+            connectError           = error.localizedDescription
+            settings.ownerName     = ""
+            settings.licenseNumber = ""
+            settings.isConnected   = false
         }
     }
 }
