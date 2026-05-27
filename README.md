@@ -30,7 +30,7 @@ A work-in-progress iOS companion app for [web-logbook](https://github.com/vsimak
 - [ ] Delete log entries
 - [ ] Totals view (total flight hours per category)
 - [ ] Aircraft list
-- [ ] Persons / crew list
+- [x] Persons / crew list
 - [ ] View flight track on map
 - [ ] Attachments support
 - [ ] Tags support
