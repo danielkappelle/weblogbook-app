@@ -152,6 +152,15 @@ struct NewLogView: View {
                     .keyboardType(.numbersAndPunctuation)
                     .multilineTextAlignment(.trailing)
                     .autocorrectionDisabled()
+                    .onChange(of: binding.wrappedValue) { _, new in
+                        let digits = String(new.filter(\.isNumber).prefix(4))
+                        let formatted: String = switch digits.count {
+                        case 3:  String(digits.prefix(1)) + ":" + String(digits.suffix(2))
+                        case 4:  String(digits.prefix(2)) + ":" + String(digits.suffix(2))
+                        default: digits
+                        }
+                        if formatted != new { binding.wrappedValue = formatted }
+                    }
                 
                 if(auto) {
                     Button { autoFillTime(binding) } label: {
